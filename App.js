@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import { 
@@ -9,8 +10,13 @@ import {
 
 export default function App() {
   const [open, setOpen] = useState(true);
+  const [waiting, setWaiting] = useState(false);
+  const [pin, setPin] = useState(true);
   
-  const handleClick = () => {
+  const handleClick = async () => {
+    setWaiting(true)
+    await axios.get(`http://192.168.0.111/pin10=${open}&pin9=1`, {timeout: 1});
+    setWaiting(false)
     setOpen(!open);
   };
   return (
@@ -21,11 +27,16 @@ export default function App() {
           <TouchableOpacity 
             style={open?styles.buttonOpen:styles.buttonClose} 
             onPress={handleClick}
+            // disabled={waiting}
           >
             <Text
               style={styles.buttonText}
             >
-              {open?'Abrir!':'Cerrar!'}
+              <>{open?'Abrir!':'Cerrar!'}</>
+              {/* {waiting?
+                <>{open?'Abriendo...':'Cerrando...'}</>
+                :
+              } */}
             </Text>
           </TouchableOpacity>
       </View>   
