@@ -2,8 +2,8 @@
 
 SoftwareSerial esp8266(3,2); 
 
-const int led1 = 10;
-const int led2 = 9;
+const int pin10 = 10;
+const int pin9 = 9;
 
 void setup() {
 
@@ -11,8 +11,10 @@ void setup() {
 
   esp8266.begin(9600); // baud rate del ESP8255
 
-  pinMode(led1, OUTPUT);
-  digitalWrite(led1, LOW);
+  pinMode(pin10, OUTPUT);
+  digitalWrite(pin10, LOW);
+  pinMode(pin9, OUTPUT);
+  digitalWrite(pin9, LOW);
 
   sendData("AT+RST\r\n",2000);      // resetear módulo
   sendData("AT+CWMODE=1\r\n",1000); // configurar como cliente
@@ -50,43 +52,39 @@ void loop() {
   if (esp8266.available())    {
     
     // revisar si el servidor recibio datos
-    if (esp8266.find("+IPD,")) {
+    if (esp8266.find((char*)"+IPD,")) {
 
       delay(1500); // esperar que lleguen los datos hacia el buffer
       
       int conexionID = esp8266.read()-48; // obtener el ID de la conexión para poder responder
-      
-      esp8266.find("pin10="); // bucar el texto "led="
-      int state10 = (esp8266.read()-48); // Obtener el estado del pin a mostrar
-      
-      digitalWrite(led1, state10); // Cambiar estado del pin
-      
-      esp8266.find("pin9=");
-      
-      int state9 = (esp8266.read()-48); // Obtener el estado del pin a mostrar
-      
-      digitalWrite(led2, state9); // Cambiar estado del pin
-      
-      
-      while(esp8266.available()) {
-        char c = esp8266.read();
-        Serial.print(c);
-      }
 
+//    getting query params
+      esp8266.find((char*)"?"); // bucar el texto "led="
+      String query_params = "";
+      for (int i = 0 ; esp8266.available() > 0 && i != 14; i++) {
+        char c = esp8266.read();
+        query_params += c;
+      }
+      Serial.println("\n");
+      Serial.print("query params: ");
+      Serial.println(query_params);
+      Serial.print("\n");
+//      pin9=0&pin10=1
+//      012345678901234
+      int state_pin9 = query_params[5] == '1'? 1 : 0;
+      int state_pin10 = query_params[13] == '1'? 1 : 0;
+      
+      
       //responder y cerrar la conexión para que el navegador no se quede cargando 
       // página web a enviar
-      String webpage = "";
-      if (state10==1) {
-        webpage += "{ pin10: true, ";
-      } else { 
-        webpage += "{ pin10: false, ";
-      }
+      String webpage = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
 
-      if (state9==1) {
-        webpage += "pin9: true }";
-      } else { 
-        webpage += "pin9: false }";
-      }
+      webpage += state_pin9 ? "{ pin9: true," : "{ pin9: false,";
+      webpage += state_pin10 ? " pin10: true }" : " pin10: false }";
+
+      digitalWrite(pin9, state_pin9);
+      digitalWrite(pin10, state_pin10);
+      
       // comando para enviar página web
       String comandoWebpage = "AT+CIPSEND=";
       
@@ -99,7 +97,7 @@ void loop() {
       comandoWebpage+="\r\n";
       
       sendData(comandoWebpage,1000);
-      
+
       sendData(webpage,1000);
       
       // comando para terminar conexión

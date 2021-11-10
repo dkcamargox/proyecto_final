@@ -11,13 +11,19 @@ import {
 export default function App() {
   const [open, setOpen] = useState(true);
   const [waiting, setWaiting] = useState(false);
-  const [pin, setPin] = useState(true);
   
   const handleClick = async () => {
     setWaiting(true)
-    await axios.get(`http://192.168.0.111/pin10=${open}&pin9=1`, {timeout: 1});
-    setWaiting(false)
-    setOpen(!open);
+    await axios.get(`http://192.168.0.103/?pin9=${open?1:0}&pin10=${!open?1:0}}`, {timeout: 10000}).then(() => {
+      setTimeout(() => {
+        setWaiting(false);
+        setOpen(!open);
+      }, 2000);  
+    }).catch(() => {
+      setTimeout(() => {
+        setWaiting(false);
+      }, 2000);
+    });
   };
   return (
     <>
@@ -27,16 +33,16 @@ export default function App() {
           <TouchableOpacity 
             style={open?styles.buttonOpen:styles.buttonClose} 
             onPress={handleClick}
-            // disabled={waiting}
+            disabled={waiting}
           >
             <Text
               style={styles.buttonText}
             >
-              <>{open?'Abrir!':'Cerrar!'}</>
-              {/* {waiting?
+              {waiting?
                 <>{open?'Abriendo...':'Cerrando...'}</>
                 :
-              } */}
+                <>{open?'Abrir!':'Cerrar!'}</>
+              }
             </Text>
           </TouchableOpacity>
       </View>   
@@ -53,7 +59,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#00172b',
-    fontSize: 64,
+    fontSize: 48,
   },
   buttonOpen: {
       width: '80%',
