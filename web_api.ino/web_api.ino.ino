@@ -18,7 +18,7 @@ void setup() {
 
   sendData("AT+RST\r\n",2000);      // resetear módulo
   sendData("AT+CWMODE=1\r\n",1000); // configurar como cliente
-  sendData("AT+CWJAP=\"Nexxt_BF9F64\",\"\"\r\n",8000); //SSID y contraseña para unirse a red 
+  sendData("AT+CWJAP=\"Danilo\",\"39940199\"\r\n",8000); //SSID y contraseña para unirse a red 
   sendData("AT+CIFSR\r\n",1000);    // obtener dirección IP
   sendData("AT+CIPMUX=1\r\n",1000); // configurar para multiples conexiones
   sendData("AT+CIPSERVER=1,80\r\n",1000);         // servidor en el puerto 80
